@@ -1,0 +1,18 @@
+# PHP/local configuration
+backend-php/config/config.php
+backend-php/storage/
+*.log
+
+# JavaScript dependencies and builds
+node_modules/
+dist/
+.expo/
+apps/web/.env.local
+apps/mobile/.env
+.env
+.env.*
+
+# OS/editor
+.DS_Store
+.vscode/
+.idea/

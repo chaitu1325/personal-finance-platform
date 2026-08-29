@@ -1,0 +1,14 @@
+{
+  "expo": {
+    "name": "Personal Finance",
+    "slug": "personal-finance",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#17365D"
+    },
+    "assetBundlePatterns": ["**/*"]
+  }
+}
