@@ -11,13 +11,13 @@ The full domain implementation is delivered in one reviewable branch/PR after th
 - React Native + Expo mobile read-oriented dashboard shell
 - MySQL migrations V001 foundation and V002 full finance modules
 - JWT authentication, Argon2id password hashing, family-scoped authorization, input allowlists and parameterized SQL
-- GitHub Actions validation for the web build and PHP syntax
+- GitHub Actions validation for the web build, PHP syntax, JWT behavior and MySQL migrations
 
 This is an application-ready development increment. Production hosting, secrets, payment/bank integrations, store submissions and destructive migrations still require an explicit release decision.
 
 ## Repository layout
 
-- backend-php: API endpoints and shared PHP libraries
+- backend-php: API endpoints, shared PHP libraries and the local development router
 - database/migrations: ordered MySQL migration scripts
 - apps/web: React web client
 - apps/mobile: Expo mobile client
@@ -30,10 +30,10 @@ This is an application-ready development increment. Production hosting, secrets,
 1. Create a MySQL database and apply V001__foundation.sql followed by V002__full_finance_modules.sql.
 2. Copy backend-php/config/config.example.php to backend-php/config/config.php, or set environment variables.
 3. Set DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD and a long random JWT_SECRET.
-4. Start the API from the repository root:
+4. Start the API from the repository root. The router makes clean /api/v1 URLs work with PHP's development server:
 
 ~~~text
-php -S 0.0.0.0:8080 -t backend-php
+php -S 0.0.0.0:8080 -t backend-php backend-php/router.php
 ~~~
 
 5. Start the web app:
