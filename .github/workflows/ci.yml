@@ -12,6 +12,19 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: personal_finance
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
     steps:
       - name: Check out
         uses: actions/checkout@v4
@@ -39,6 +52,14 @@ jobs:
 
       - name: Validate JSON metadata
         run: node -e "JSON.parse(require('fs').readFileSync('apps/web/package.json')); JSON.parse(require('fs').readFileSync('apps/mobile/package.json')); JSON.parse(require('fs').readFileSync('apps/mobile/app.json')); console.log('metadata ok')"
+
+      - name: Apply MySQL migrations
+        env:
+          MYSQL_PWD: root
+        run: |
+          mysql --protocol=TCP -h 127.0.0.1 -P 3306 -u root personal_finance < database/migrations/V001__foundation.sql
+          mysql --protocol=TCP -h 127.0.0.1 -P 3306 -u root personal_finance < database/migrations/V002__full_finance_modules.sql
+          mysql --protocol=TCP -h 127.0.0.1 -P 3306 -u root personal_finance -e "SHOW TABLES;"
 
       - name: Check migrations are present
         run: test -s database/migrations/V001__foundation.sql && test -s database/migrations/V002__full_finance_modules.sql
