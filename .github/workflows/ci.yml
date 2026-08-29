@@ -1,0 +1,38 @@
+name: Phase 1 validation
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install web dependencies
+        working-directory: apps/web
+        run: npm install
+
+      - name: Build web
+        working-directory: apps/web
+        run: npm run build
+
+      - name: Validate PHP syntax
+        shell: bash
+        run: |
+          set -e
+          find backend-php -name '*.php' -print0 | xargs -0 -n1 php -l
