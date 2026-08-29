@@ -14,7 +14,7 @@ export default function App() {
   const [apiStatus, setApiStatus] = useState('Checking API…');
 
   useEffect(() => {
-    fetch(\`\${apiBaseUrl}/api/v1/health\`)
+    fetch(apiBaseUrl + '/api/v1/health')
       .then((response) => response.json())
       .then((payload) => setApiStatus(payload?.data?.status === 'up' ? 'API online' : 'API unavailable'))
       .catch(() => setApiStatus('API unavailable'));
@@ -29,7 +29,7 @@ export default function App() {
           A shared web and mobile foundation for income, expenses, rentals,
           investments, assets, and liabilities.
         </p>
-        <span className={\`status-pill \${apiStatus === 'API online' ? 'online' : ''}\`}>
+        <span className={'status-pill ' + (apiStatus === 'API online' ? 'online' : '')}>
           {apiStatus}
         </span>
       </section>

@@ -10,10 +10,10 @@ export function createApiClient(baseUrl, getToken = () => null) {
 
     const token = getToken();
     if (token) {
-      headers.set('Authorization', \`Bearer \${token}\`);
+      headers.set('Authorization', 'Bearer ' + token);
     }
 
-    const response = await fetch(\`\${normalizedBaseUrl}\${path}\`, {
+    const response = await fetch(normalizedBaseUrl + path, {
       ...options,
       headers,
     });
