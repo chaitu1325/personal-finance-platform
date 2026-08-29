@@ -9,14 +9,22 @@ function respond($data, int $status = 200): void
     exit;
 }
 
-function respond_error(string $message, int $status = 400, array $details = []): void
+function respond_error(string $codeOrMessage, $statusOrMessage = 400, $detailsOrStatus = []): void
 {
+    if (is_string($statusOrMessage)) {
+        $code = strtoupper(str_replace(' ', '_', $codeOrMessage));
+        $message = $statusOrMessage;
+        $status = is_int($detailsOrStatus) ? $detailsOrStatus : 400;
+        $details = is_array($detailsOrStatus) ? $detailsOrStatus : [];
+    } else {
+        $message = $codeOrMessage;
+        $status = is_int($statusOrMessage) ? $statusOrMessage : 400;
+        $code = strtoupper(str_replace(' ', '_', $message));
+        $details = is_array($detailsOrStatus) ? $detailsOrStatus : [];
+    }
     http_response_code($status);
     header('Content-Type: application/json; charset=utf-8');
-    $error = [
-        'code' => strtoupper(str_replace(' ', '_', $message)),
-        'message' => $message,
-    ];
+    $error = ['code' => $code, 'message' => $message];
     if ($details !== []) {
         $error['details'] = $details;
     }
