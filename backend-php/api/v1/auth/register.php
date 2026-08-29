@@ -43,7 +43,7 @@ try {
     $familyStmt = $pdo->prepare(
         'INSERT INTO families (owner_user_id, name, base_currency) VALUES (?, ?, ?)'
     );
-    $familyStmt->execute([$userId, $displayName . '''s Family', 'INR']);
+    $familyStmt->execute([$userId, $displayName . "'s Family", 'INR']);
     $familyId = (int) $pdo->lastInsertId();
 
     $memberStmt = $pdo->prepare(
