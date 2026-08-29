@@ -1,4 +1,4 @@
-name: Phase 1 validation
+name: Phase 1 and full implementation validation
 
 on:
   push:
@@ -13,10 +13,10 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Check out
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -25,12 +25,20 @@ jobs:
         working-directory: apps/web
         run: npm install
 
-      - name: Build web
+      - name: Build web app
         working-directory: apps/web
         run: npm run build
 
       - name: Validate PHP syntax
-        shell: bash
-        run: |
-          set -e
-          find backend-php -name '*.php' -print0 | xargs -0 -n1 php -l
+        run: find backend-php -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Run PHP smoke tests
+        env:
+          JWT_SECRET: ci-test-secret
+        run: php backend-php/tests/jwt_smoke.php
+
+      - name: Validate JSON metadata
+        run: node -e "JSON.parse(require('fs').readFileSync('apps/web/package.json')); JSON.parse(require('fs').readFileSync('apps/mobile/package.json')); JSON.parse(require('fs').readFileSync('apps/mobile/app.json')); console.log('metadata ok')"
+
+      - name: Check migrations are present
+        run: test -s database/migrations/V001__foundation.sql && test -s database/migrations/V002__full_finance_modules.sql

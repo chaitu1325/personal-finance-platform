@@ -1,82 +1,80 @@
 # Personal Finance Platform
 
-A modular personal-finance platform for web and mobile.
+A family-focused personal finance workspace for web and mobile. It combines income and expense tracking with family people, rental management, investments, assets, liabilities, budgets and goals.
 
-## Approved Phase 1 architecture
+## Current delivery
 
-- Web: React + Vite
-- Mobile: React Native + Expo
-- Backend: PHP 8.3 REST API
-- Database: MySQL
-- Authentication: JWT Bearer tokens
-- API contract: versioned JSON REST under \`/api/v1\`
-- Future backend: Java Spring Boot behind the same contracts
+The full domain implementation is delivered in one reviewable branch/PR after the Phase 1 foundation was merged into main.
 
-## Planned business modules
+- PHP 8.3 REST API with a stable /api/v1 contract
+- React + Vite web application with authentication, dashboard and CRUD starter forms
+- React Native + Expo mobile read-oriented dashboard shell
+- MySQL migrations V001 foundation and V002 full finance modules
+- JWT authentication, Argon2id password hashing, family-scoped authorization, input allowlists and parameterized SQL
+- GitHub Actions validation for the web build and PHP syntax
 
-- Authentication and users
-- Family and persons
-- Accounts and categories
-- Income, expenses, transfers, and recurring transactions
-- Rental management
-- Investments
-- Assets
-- Liabilities and loans
-- Dashboard, reports, notifications, and audit
+This is an application-ready development increment. Production hosting, secrets, payment/bank integrations, store submissions and destructive migrations still require an explicit release decision.
 
-## Phase 1 foundation in this branch
+## Repository layout
 
-- PHP API bootstrap with PDO, JSON responses, request parsing, and JWT helpers
-- Health endpoint
-- Registration and login endpoints
-- MySQL foundation migration
-- React web shell
-- React Native/Expo mobile shell
-- Shared API client package
-- CI validation for PHP syntax and web build
+- backend-php: API endpoints and shared PHP libraries
+- database/migrations: ordered MySQL migration scripts
+- apps/web: React web client
+- apps/mobile: Expo mobile client
+- packages/api-client: small shared fetch client
+- packages/api-types: shared module and enum metadata
+- docs: implementation and release notes
 
 ## Local setup
 
-### PHP API
+1. Create a MySQL database and apply V001__foundation.sql followed by V002__full_finance_modules.sql.
+2. Copy backend-php/config/config.example.php to backend-php/config/config.php, or set environment variables.
+3. Set DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD and a long random JWT_SECRET.
+4. Start the API from the repository root:
 
-1. Copy \`backend-php/config/config.example.php\` to \`backend-php/config/config.php\`.
-2. Set MySQL credentials and a long random JWT secret.
-3. Apply \`database/migrations/V001__foundation.sql\`.
-4. Serve \`backend-php\` from PHP 8.3. For local testing:
+~~~text
+php -S 0.0.0.0:8080 -t backend-php
+~~~
 
-\`\`\`bash
-php -S localhost:8080 -t backend-php
-\`\`\`
+5. Start the web app:
 
-The health endpoint is \`GET /api/v1/health.php\`. With Apache rewrite rules enabled, \`/api/v1/health\` is also supported.
-
-### Web
-
-\`\`\`bash
+~~~text
 cd apps/web
 npm install
 npm run dev
-\`\`\`
+~~~
 
-Set \`VITE_API_BASE_URL\` in \`.env.local\` when the API is not at the default URL.
-
-### Mobile
-
-\`\`\`bash
-cd apps/mobile
-npm install
-npx expo start
-\`\`\`
-
-Set \`EXPO_PUBLIC_API_BASE_URL\` for the API URL.
+Set VITE_API_BASE_URL when the API is not at http://localhost:8080/api/v1. For Expo, set EXPO_PUBLIC_API_BASE_URL.
 
 ## API conventions
 
-- Success responses: \`{ "success": true, "data": ... }\`
-- Error responses: \`{ "success": false, "error": { "code": "...", "message": "...", "details": ... } }\`
-- Protected calls use \`Authorization: Bearer <token>\`.
-- Clients must not depend on PHP filenames or database table names.
+- JSON request and response bodies
+- Success responses are wrapped in data; collection endpoints return data.items and data.meta
+- Errors are returned as error.code and error.message
+- Use Authorization: Bearer <JWT> for all endpoints except health, register and login
+- All records are scoped to the authenticated user's active family
+- Collection CRUD uses GET, POST, PUT/PATCH and DELETE /api/v1/<resource>?id=<id>
+- List supports limit, offset and the filters documented in the endpoint source
 
-## Branch and deployment policy
+## Main endpoints
 
-All work is delivered through feature branches and pull requests. CI performs validation only. Production deployment, database migration, and external-service changes require explicit approval.
+- /health, /auth/register, /auth/login
+- /family, /members, /persons, /accounts, /categories
+- /transactions, /recurring-transactions, /budgets, /goals
+- /properties, /rental-units, /rental-agreements, /rent-payments
+- /investments, /investment-transactions
+- /assets, /asset-valuations
+- /liabilities, /loan-schedules, /loan-payments
+- /dashboard, /reports?type=cashflow|spending|net-worth, /notifications
+
+## Delivery and branch policy
+
+Work is developed from main on a feature branch and submitted as a pull request. Do not commit directly to main. Review the pull request and CI result before merging. Apply database migrations in a controlled environment before any production release.
+
+## Follow-up hardening
+
+- Add integration tests with a disposable MySQL service and API contract tests
+- Add refresh-token rotation, rate limiting, email verification and account recovery
+- Add background jobs for recurring entries, rent reminders and loan schedules
+- Add audit event writes, object storage for documents and observability
+- Introduce the Java Spring Boot adapter behind the same API contract when the PHP implementation is ready to be replaced
