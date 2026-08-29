@@ -1,27 +1,17 @@
 <?php
 declare(strict_types=1);
 
-require_once dirname(__DIR__, 3) . '/lib/bootstrap.php';
-require_once dirname(__DIR__, 3) . '/lib/response.php';
+require_once __DIR__ . '/_bootstrap.php';
 
-configure_http();
-
-try {
-    $database = 'unavailable';
+api_run(function (): void {
+    require_method('GET');
+    $payload = ['status' => 'ok', 'service' => 'personal-finance-api'];
     try {
         db()->query('SELECT 1');
-        $database = 'up';
-    } catch (Throwable) {
-        // Health remains useful before database credentials are configured.
+        $payload['database'] = 'ok';
+    } catch (Throwable $exception) {
+        $payload['database'] = 'unavailable';
+        $payload['status'] = 'degraded';
     }
-
-    respond([
-        'service' => 'personal-finance-api',
-        'status' => 'up',
-        'environment' => app_config()['app_env'],
-        'database' => $database,
-        'timestamp' => gmdate('c'),
-    ]);
-} catch (Throwable $e) {
-    handle_api_exception($e);
-}
+    respond($payload);
+});

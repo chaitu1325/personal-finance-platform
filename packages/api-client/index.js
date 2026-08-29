@@ -1,42 +1,42 @@
-export function createApiClient(baseUrl, getToken = () => null) {
-  const normalizedBaseUrl = baseUrl.replace(/\/$/, '');
+function createApiClient(options) {
+  options = options || {};
+  var baseUrl = (options.baseUrl || 'http://localhost:8080/api/v1').replace(/\/$/, '');
+  var getToken = options.getToken || function () { return null; };
 
-  async function request(path, options = {}) {
-    const headers = new Headers(options.headers || {});
-    headers.set('Accept', 'application/json');
-    if (options.body && !headers.has('Content-Type')) {
-      headers.set('Content-Type', 'application/json');
+  async function request(path, requestOptions) {
+    requestOptions = requestOptions || {};
+    var headers = Object.assign({ Accept: 'application/json' }, requestOptions.headers || {});
+    var token = getToken();
+    if (token) headers.Authorization = 'Bearer ' + token;
+    var init = Object.assign({}, requestOptions, { headers: headers });
+    if (init.body && typeof init.body !== 'string') {
+      headers['Content-Type'] = 'application/json';
+      init.body = JSON.stringify(init.body);
     }
-
-    const token = getToken();
-    if (token) {
-      headers.set('Authorization', 'Bearer ' + token);
-    }
-
-    const response = await fetch(normalizedBaseUrl + path, {
-      ...options,
-      headers,
-    });
-    const payload = await response.json().catch(() => ({}));
-
-    if (!response.ok || payload.success === false) {
-      const error = new Error(payload?.error?.message || 'API request failed');
-      error.code = payload?.error?.code || 'API_ERROR';
+    var response = await fetch(baseUrl + path, init);
+    var payload = await response.json().catch(function () { return {}; });
+    if (!response.ok) {
+      var message = payload && payload.error && payload.error.message
+        ? payload.error.message
+        : 'Request failed with status ' + response.status;
+      var error = new Error(message);
       error.status = response.status;
-      error.details = payload?.error?.details || {};
+      error.payload = payload;
       throw error;
     }
-
-    return payload.data;
+    return payload.data === undefined ? payload : payload.data;
   }
 
   return {
-    get: (path, options = {}) => request(path, { ...options, method: 'GET' }),
-    post: (path, body, options = {}) => request(path, {
-      ...options,
-      method: 'POST',
-      body: JSON.stringify(body),
-    }),
-    request,
+    request: request,
+    get: function (path) { return request(path); },
+    post: function (path, body) { return request(path, { method: 'POST', body: body }); },
+    put: function (path, body) { return request(path, { method: 'PUT', body: body }); },
+    patch: function (path, body) { return request(path, { method: 'PATCH', body: body }); },
+    del: function (path, body) { return request(path, { method: 'DELETE', body: body }); }
   };
+}
+
+if (typeof module !== 'undefined') {
+  module.exports = { createApiClient: createApiClient };
 }
