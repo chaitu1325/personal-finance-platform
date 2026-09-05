@@ -1,0 +1,27 @@
+Options -Indexes
+DirectoryIndex index.html index.php
+
+RewriteEngine On
+
+# Preserve bearer tokens when PHP runs through CGI/FastCGI.
+RewriteCond %{HTTP:Authorization} .
+RewriteRule ^ - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+# Configuration must never be served by the web server.
+RewriteRule ^config(?:/|$) - [F,L]
+
+# Map clean API URLs such as /api/v1/accounts to accounts.php.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^api/v1/([A-Za-z0-9/_-]+)/?$ api/v1/$1.php [L,QSA]
+
+# Do not turn an unknown API route into the React application.
+RewriteCond %{REQUEST_URI} !^/api/
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.html [L]
+
+# Protect deployment state and other hidden files.
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>

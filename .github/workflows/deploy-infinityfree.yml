@@ -1,0 +1,125 @@
+name: Deploy to InfinityFree
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: infinityfree-test-deployment
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build and deploy
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: infinityfree-test
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Validate deployment settings
+        shell: bash
+        env:
+          FTP_USERNAME: ${{ secrets.INFINITYFREE_FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.INFINITYFREE_FTP_PASSWORD }}
+          SERVER_DIR: ${{ vars.INFINITYFREE_SERVER_DIR }}
+        run: |
+          if [ -z "$FTP_USERNAME" ]; then
+            echo "::error::Missing INFINITYFREE_FTP_USERNAME environment secret"
+            exit 1
+          fi
+          if [ -z "$FTP_PASSWORD" ]; then
+            echo "::error::Missing INFINITYFREE_FTP_PASSWORD environment secret"
+            exit 1
+          fi
+          if [ -z "$SERVER_DIR" ]; then
+            echo "::error::Missing INFINITYFREE_SERVER_DIR environment variable"
+            exit 1
+          fi
+          case "$SERVER_DIR" in
+            */) ;;
+            *)
+              echo "::error::INFINITYFREE_SERVER_DIR must end with a slash"
+              exit 1
+              ;;
+          esac
+
+      - name: Install web dependencies
+        working-directory: apps/web
+        run: npm install --no-audit --no-fund
+
+      - name: Build web application
+        working-directory: apps/web
+        env:
+          VITE_API_BASE_URL: /api/v1
+        run: npm run build
+
+      - name: Validate PHP syntax
+        run: find backend-php -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Run PHP smoke tests
+        env:
+          JWT_SECRET: infinityfree-deployment-test-secret
+        run: php backend-php/tests/jwt_smoke.php
+
+      - name: Assemble deployment package
+        shell: bash
+        run: |
+          mkdir -p release/api release/lib release/config
+          cp -R apps/web/dist/. release/
+          cp -R backend-php/api/. release/api/
+          cp -R backend-php/lib/. release/lib/
+          cp deployment/infinityfree/.htaccess release/.htaccess
+          cp deployment/infinityfree/config.htaccess release/config/.htaccess
+          cp deployment/infinityfree/config.example.php release/config/config.example.php
+
+      - name: Check InfinityFree file-size limits
+        shell: bash
+        run: |
+          oversized_code="$(find release -type f \
+            \( -name '*.html' -o -name '*.php' -o -name '*.js' \) \
+            -size +1024k -print)"
+          oversized_htaccess="$(find release -type f \
+            -name '.htaccess' -size +10k -print)"
+          oversized_other="$(find release -type f \
+            ! \( -name '*.html' -o -name '*.php' -o -name '*.js' -o -name '.htaccess' \) \
+            -size +10240k -print)"
+
+          if [ -n "$oversized_code" ] || \
+             [ -n "$oversized_htaccess" ] || \
+             [ -n "$oversized_other" ]; then
+            echo "::error::One or more files exceed InfinityFree upload limits"
+            printf '%s\n' "$oversized_code"
+            printf '%s\n' "$oversized_htaccess"
+            printf '%s\n' "$oversized_other"
+            exit 1
+          fi
+
+      - name: Deploy using FTPS
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server: ftpupload.net
+          username: ${{ secrets.INFINITYFREE_FTP_USERNAME }}
+          password: ${{ secrets.INFINITYFREE_FTP_PASSWORD }}
+          protocol: ftps
+          port: 21
+          local-dir: ./release/
+          server-dir: ${{ vars.INFINITYFREE_SERVER_DIR }}
+          dangerous-clean-slate: false
+          log-level: standard
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            config/config.php
+            **/config/config.php
