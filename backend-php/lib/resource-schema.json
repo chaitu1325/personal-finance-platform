@@ -1,0 +1,1409 @@
+{
+  "users": {
+    "id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "email": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 320
+    },
+    "password_hash": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 255
+    },
+    "display_name": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 120
+    },
+    "role": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 30,
+      "default": "USER"
+    },
+    "status": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 30,
+      "default": "ACTIVE"
+    },
+    "timezone": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 64,
+      "default": "Asia/Kolkata"
+    },
+    "default_currency": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 3,
+      "default": "INR"
+    },
+    "created_at": {
+      "type": "text",
+      "nullable": false
+    },
+    "updated_at": {
+      "type": "text",
+      "nullable": false
+    }
+  },
+  "families": {
+    "id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "owner_user_id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "name": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 150
+    },
+    "base_currency": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 3,
+      "default": "INR"
+    },
+    "created_at": {
+      "type": "text",
+      "nullable": false
+    },
+    "updated_at": {
+      "type": "text",
+      "nullable": false
+    }
+  },
+  "family_members": {
+    "id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "family_id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "user_id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "member_role": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 30,
+      "default": "MEMBER"
+    },
+    "status": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 30,
+      "default": "ACTIVE"
+    },
+    "joined_at": {
+      "type": "text",
+      "nullable": false
+    }
+  },
+  "persons": {
+    "id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "family_id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "full_name": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 150
+    },
+    "relationship": {
+      "type": "text",
+      "nullable": true,
+      "maxLength": 80
+    },
+    "date_of_birth": {
+      "type": "date",
+      "nullable": true
+    },
+    "phone": {
+      "type": "text",
+      "nullable": true,
+      "maxLength": 40
+    },
+    "email": {
+      "type": "text",
+      "nullable": true,
+      "maxLength": 320
+    },
+    "notes": {
+      "type": "text",
+      "nullable": true,
+      "maxLength": 16000
+    },
+    "status": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 30,
+      "default": "ACTIVE"
+    },
+    "created_at": {
+      "type": "text",
+      "nullable": false
+    },
+    "updated_at": {
+      "type": "text",
+      "nullable": false
+    }
+  },
+  "accounts": {
+    "id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "family_id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "name": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 120
+    },
+    "account_type": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 40
+    },
+    "institution": {
+      "type": "text",
+      "nullable": true,
+      "maxLength": 150
+    },
+    "description": {
+      "type": "text",
+      "nullable": true,
+      "maxLength": 500
+    },
+    "opening_balance": {
+      "type": "decimal",
+      "nullable": false,
+      "precision": 19,
+      "scale": 4,
+      "default": "0"
+    },
+    "currency": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 3,
+      "default": "INR"
+    },
+    "status": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 30,
+      "default": "ACTIVE"
+    },
+    "created_at": {
+      "type": "text",
+      "nullable": false
+    },
+    "updated_at": {
+      "type": "text",
+      "nullable": false
+    }
+  },
+  "categories": {
+    "id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "family_id": {
+      "type": "integer",
+      "nullable": true,
+      "min": 0
+    },
+    "name": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 100
+    },
+    "category_type": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 30
+    },
+    "created_at": {
+      "type": "text",
+      "nullable": false
+    }
+  },
+  "transactions": {
+    "id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "family_id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "account_id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "person_id": {
+      "type": "integer",
+      "nullable": true,
+      "min": 0
+    },
+    "category_id": {
+      "type": "integer",
+      "nullable": true,
+      "min": 0
+    },
+    "transaction_type": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 30
+    },
+    "amount": {
+      "type": "decimal",
+      "nullable": false,
+      "precision": 19,
+      "scale": 4
+    },
+    "transaction_date": {
+      "type": "date",
+      "nullable": false
+    },
+    "description": {
+      "type": "text",
+      "nullable": true,
+      "maxLength": 255
+    },
+    "reference_number": {
+      "type": "text",
+      "nullable": true,
+      "maxLength": 120
+    },
+    "created_by": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "created_at": {
+      "type": "text",
+      "nullable": false
+    },
+    "updated_at": {
+      "type": "text",
+      "nullable": false
+    },
+    "entry_type": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 40,
+      "default": "OTHER"
+    },
+    "frequency": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 20,
+      "default": "ONETIME"
+    },
+    "recurring_id": {
+      "type": "integer",
+      "nullable": true,
+      "min": 0
+    }
+  },
+  "audit_logs": {
+    "id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "user_id": {
+      "type": "integer",
+      "nullable": true,
+      "min": 0
+    },
+    "action": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 100
+    },
+    "resource_type": {
+      "type": "text",
+      "nullable": true,
+      "maxLength": 80
+    },
+    "resource_id": {
+      "type": "integer",
+      "nullable": true,
+      "min": 0
+    },
+    "request_id": {
+      "type": "text",
+      "nullable": true,
+      "maxLength": 80
+    },
+    "metadata": {
+      "type": "json",
+      "nullable": true
+    },
+    "created_at": {
+      "type": "text",
+      "nullable": false
+    }
+  },
+  "budgets": {
+    "id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "family_id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "category_id": {
+      "type": "integer",
+      "nullable": true,
+      "min": 0
+    },
+    "period_start": {
+      "type": "date",
+      "nullable": false
+    },
+    "period_end": {
+      "type": "date",
+      "nullable": false
+    },
+    "amount": {
+      "type": "decimal",
+      "nullable": false,
+      "precision": 19,
+      "scale": 4
+    },
+    "alert_percent": {
+      "type": "integer",
+      "nullable": false,
+      "default": "80",
+      "min": 0
+    },
+    "status": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 30,
+      "default": "ACTIVE"
+    },
+    "notes": {
+      "type": "text",
+      "nullable": true,
+      "maxLength": 16000
+    },
+    "created_by": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "created_at": {
+      "type": "text",
+      "nullable": false
+    },
+    "updated_at": {
+      "type": "text",
+      "nullable": false
+    }
+  },
+  "financial_goals": {
+    "id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "family_id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "name": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 150
+    },
+    "target_amount": {
+      "type": "decimal",
+      "nullable": false,
+      "precision": 19,
+      "scale": 4
+    },
+    "current_amount": {
+      "type": "decimal",
+      "nullable": false,
+      "precision": 19,
+      "scale": 4,
+      "default": "0"
+    },
+    "target_date": {
+      "type": "date",
+      "nullable": true
+    },
+    "status": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 30,
+      "default": "ACTIVE"
+    },
+    "notes": {
+      "type": "text",
+      "nullable": true,
+      "maxLength": 16000
+    },
+    "created_by": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "created_at": {
+      "type": "text",
+      "nullable": false
+    },
+    "updated_at": {
+      "type": "text",
+      "nullable": false
+    }
+  },
+  "recurring_transactions": {
+    "id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "family_id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "account_id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "person_id": {
+      "type": "integer",
+      "nullable": true,
+      "min": 0
+    },
+    "category_id": {
+      "type": "integer",
+      "nullable": true,
+      "min": 0
+    },
+    "transaction_type": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 30
+    },
+    "amount": {
+      "type": "decimal",
+      "nullable": false,
+      "precision": 19,
+      "scale": 4
+    },
+    "frequency": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 20
+    },
+    "next_run_date": {
+      "type": "date",
+      "nullable": false
+    },
+    "end_date": {
+      "type": "date",
+      "nullable": true
+    },
+    "description": {
+      "type": "text",
+      "nullable": true,
+      "maxLength": 255
+    },
+    "is_active": {
+      "type": "integer",
+      "nullable": false,
+      "default": "1"
+    },
+    "created_by": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "created_at": {
+      "type": "text",
+      "nullable": false
+    },
+    "updated_at": {
+      "type": "text",
+      "nullable": false
+    },
+    "entry_type": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 40,
+      "default": "OTHER"
+    },
+    "start_date": {
+      "type": "date",
+      "nullable": true
+    }
+  },
+  "properties": {
+    "id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "family_id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "property_name": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 150
+    },
+    "address": {
+      "type": "text",
+      "nullable": true,
+      "maxLength": 255
+    },
+    "city": {
+      "type": "text",
+      "nullable": true,
+      "maxLength": 100
+    },
+    "state": {
+      "type": "text",
+      "nullable": true,
+      "maxLength": 100
+    },
+    "country": {
+      "type": "text",
+      "nullable": true,
+      "maxLength": 100
+    },
+    "postal_code": {
+      "type": "text",
+      "nullable": true,
+      "maxLength": 30
+    },
+    "property_type": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 30
+    },
+    "units_count": {
+      "type": "integer",
+      "nullable": false,
+      "default": "1",
+      "min": 0
+    },
+    "purchase_date": {
+      "type": "date",
+      "nullable": true
+    },
+    "purchase_value": {
+      "type": "decimal",
+      "nullable": false,
+      "precision": 19,
+      "scale": 4,
+      "default": "0"
+    },
+    "current_value": {
+      "type": "decimal",
+      "nullable": false,
+      "precision": 19,
+      "scale": 4,
+      "default": "0"
+    },
+    "status": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 30,
+      "default": "ACTIVE"
+    },
+    "notes": {
+      "type": "text",
+      "nullable": true,
+      "maxLength": 16000
+    },
+    "created_by": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "created_at": {
+      "type": "text",
+      "nullable": false
+    },
+    "updated_at": {
+      "type": "text",
+      "nullable": false
+    }
+  },
+  "rental_units": {
+    "id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "family_id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "property_id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "unit_label": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 80
+    },
+    "bedrooms": {
+      "type": "integer",
+      "nullable": false,
+      "default": "0",
+      "min": 0
+    },
+    "monthly_rent": {
+      "type": "decimal",
+      "nullable": false,
+      "precision": 19,
+      "scale": 4
+    },
+    "deposit_amount": {
+      "type": "decimal",
+      "nullable": false,
+      "precision": 19,
+      "scale": 4,
+      "default": "0"
+    },
+    "status": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 30,
+      "default": "VACANT"
+    },
+    "notes": {
+      "type": "text",
+      "nullable": true,
+      "maxLength": 16000
+    },
+    "created_by": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "created_at": {
+      "type": "text",
+      "nullable": false
+    },
+    "updated_at": {
+      "type": "text",
+      "nullable": false
+    }
+  },
+  "rental_agreements": {
+    "id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "family_id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "unit_id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "person_id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "start_date": {
+      "type": "date",
+      "nullable": false
+    },
+    "end_date": {
+      "type": "date",
+      "nullable": true
+    },
+    "monthly_rent": {
+      "type": "decimal",
+      "nullable": false,
+      "precision": 19,
+      "scale": 4
+    },
+    "deposit_amount": {
+      "type": "decimal",
+      "nullable": false,
+      "precision": 19,
+      "scale": 4,
+      "default": "0"
+    },
+    "status": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 30,
+      "default": "DRAFT"
+    },
+    "notes": {
+      "type": "text",
+      "nullable": true,
+      "maxLength": 16000
+    },
+    "created_by": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "created_at": {
+      "type": "text",
+      "nullable": false
+    },
+    "updated_at": {
+      "type": "text",
+      "nullable": false
+    }
+  },
+  "rent_payments": {
+    "id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "family_id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "agreement_id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "amount": {
+      "type": "decimal",
+      "nullable": false,
+      "precision": 19,
+      "scale": 4
+    },
+    "due_date": {
+      "type": "date",
+      "nullable": false
+    },
+    "paid_date": {
+      "type": "date",
+      "nullable": true
+    },
+    "payment_status": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 30,
+      "default": "DUE"
+    },
+    "transaction_id": {
+      "type": "integer",
+      "nullable": true,
+      "min": 0
+    },
+    "notes": {
+      "type": "text",
+      "nullable": true,
+      "maxLength": 16000
+    },
+    "created_by": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "created_at": {
+      "type": "text",
+      "nullable": false
+    },
+    "updated_at": {
+      "type": "text",
+      "nullable": false
+    }
+  },
+  "investments": {
+    "id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "family_id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "name": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 150
+    },
+    "investment_type": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 30
+    },
+    "account_id": {
+      "type": "integer",
+      "nullable": true,
+      "min": 0
+    },
+    "institution": {
+      "type": "text",
+      "nullable": true,
+      "maxLength": 150
+    },
+    "symbol": {
+      "type": "text",
+      "nullable": true,
+      "maxLength": 40
+    },
+    "quantity": {
+      "type": "decimal",
+      "nullable": false,
+      "precision": 24,
+      "scale": 8,
+      "default": "0"
+    },
+    "average_cost": {
+      "type": "decimal",
+      "nullable": false,
+      "precision": 19,
+      "scale": 4,
+      "default": "0"
+    },
+    "current_price": {
+      "type": "decimal",
+      "nullable": false,
+      "precision": 19,
+      "scale": 4,
+      "default": "0"
+    },
+    "purchase_date": {
+      "type": "date",
+      "nullable": true
+    },
+    "status": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 30,
+      "default": "ACTIVE"
+    },
+    "notes": {
+      "type": "text",
+      "nullable": true,
+      "maxLength": 16000
+    },
+    "created_by": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "created_at": {
+      "type": "text",
+      "nullable": false
+    },
+    "updated_at": {
+      "type": "text",
+      "nullable": false
+    }
+  },
+  "investment_transactions": {
+    "id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "family_id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "investment_id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "transaction_type": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 30
+    },
+    "trade_date": {
+      "type": "date",
+      "nullable": false
+    },
+    "quantity": {
+      "type": "decimal",
+      "nullable": false,
+      "precision": 24,
+      "scale": 8
+    },
+    "price": {
+      "type": "decimal",
+      "nullable": false,
+      "precision": 19,
+      "scale": 4
+    },
+    "fees": {
+      "type": "decimal",
+      "nullable": false,
+      "precision": 19,
+      "scale": 4,
+      "default": "0"
+    },
+    "notes": {
+      "type": "text",
+      "nullable": true,
+      "maxLength": 16000
+    },
+    "created_by": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "created_at": {
+      "type": "text",
+      "nullable": false
+    },
+    "updated_at": {
+      "type": "text",
+      "nullable": false
+    }
+  },
+  "assets": {
+    "id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "family_id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "name": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 150
+    },
+    "asset_type": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 30
+    },
+    "purchase_date": {
+      "type": "date",
+      "nullable": true
+    },
+    "purchase_value": {
+      "type": "decimal",
+      "nullable": false,
+      "precision": 19,
+      "scale": 4,
+      "default": "0"
+    },
+    "current_value": {
+      "type": "decimal",
+      "nullable": false,
+      "precision": 19,
+      "scale": 4,
+      "default": "0"
+    },
+    "person_id": {
+      "type": "integer",
+      "nullable": true,
+      "min": 0
+    },
+    "status": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 30,
+      "default": "ACTIVE"
+    },
+    "notes": {
+      "type": "text",
+      "nullable": true,
+      "maxLength": 16000
+    },
+    "created_by": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "created_at": {
+      "type": "text",
+      "nullable": false
+    },
+    "updated_at": {
+      "type": "text",
+      "nullable": false
+    }
+  },
+  "asset_valuations": {
+    "id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "family_id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "asset_id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "valuation_date": {
+      "type": "date",
+      "nullable": false
+    },
+    "value": {
+      "type": "decimal",
+      "nullable": false,
+      "precision": 19,
+      "scale": 4
+    },
+    "notes": {
+      "type": "text",
+      "nullable": true,
+      "maxLength": 16000
+    },
+    "created_by": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "created_at": {
+      "type": "text",
+      "nullable": false
+    }
+  },
+  "liabilities": {
+    "id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "family_id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "name": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 150
+    },
+    "liability_type": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 30
+    },
+    "lender": {
+      "type": "text",
+      "nullable": true,
+      "maxLength": 150
+    },
+    "original_amount": {
+      "type": "decimal",
+      "nullable": false,
+      "precision": 19,
+      "scale": 4
+    },
+    "outstanding_amount": {
+      "type": "decimal",
+      "nullable": false,
+      "precision": 19,
+      "scale": 4
+    },
+    "interest_rate": {
+      "type": "decimal",
+      "nullable": false,
+      "precision": 9,
+      "scale": 4,
+      "default": "0"
+    },
+    "start_date": {
+      "type": "date",
+      "nullable": true
+    },
+    "due_date": {
+      "type": "date",
+      "nullable": true
+    },
+    "minimum_payment": {
+      "type": "decimal",
+      "nullable": false,
+      "precision": 19,
+      "scale": 4,
+      "default": "0"
+    },
+    "status": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 30,
+      "default": "ACTIVE"
+    },
+    "notes": {
+      "type": "text",
+      "nullable": true,
+      "maxLength": 16000
+    },
+    "created_by": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "created_at": {
+      "type": "text",
+      "nullable": false
+    },
+    "updated_at": {
+      "type": "text",
+      "nullable": false
+    }
+  },
+  "loan_schedules": {
+    "id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "family_id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "liability_id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "due_date": {
+      "type": "date",
+      "nullable": false
+    },
+    "principal_due": {
+      "type": "decimal",
+      "nullable": false,
+      "precision": 19,
+      "scale": 4,
+      "default": "0"
+    },
+    "interest_due": {
+      "type": "decimal",
+      "nullable": false,
+      "precision": 19,
+      "scale": 4,
+      "default": "0"
+    },
+    "status": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 30,
+      "default": "DUE"
+    },
+    "paid_date": {
+      "type": "date",
+      "nullable": true
+    },
+    "created_by": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "created_at": {
+      "type": "text",
+      "nullable": false
+    },
+    "updated_at": {
+      "type": "text",
+      "nullable": false
+    }
+  },
+  "loan_payments": {
+    "id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "family_id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "liability_id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "payment_date": {
+      "type": "date",
+      "nullable": false
+    },
+    "amount": {
+      "type": "decimal",
+      "nullable": false,
+      "precision": 19,
+      "scale": 4
+    },
+    "principal_amount": {
+      "type": "decimal",
+      "nullable": false,
+      "precision": 19,
+      "scale": 4,
+      "default": "0"
+    },
+    "interest_amount": {
+      "type": "decimal",
+      "nullable": false,
+      "precision": 19,
+      "scale": 4,
+      "default": "0"
+    },
+    "notes": {
+      "type": "text",
+      "nullable": true,
+      "maxLength": 16000
+    },
+    "created_by": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "created_at": {
+      "type": "text",
+      "nullable": false
+    },
+    "updated_at": {
+      "type": "text",
+      "nullable": false
+    }
+  },
+  "notifications": {
+    "id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "family_id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "user_id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "notification_type": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 50
+    },
+    "title": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 180
+    },
+    "message": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 500
+    },
+    "read_at": {
+      "type": "text",
+      "nullable": true
+    },
+    "created_at": {
+      "type": "text",
+      "nullable": false
+    }
+  },
+  "import_batches": {
+    "id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "family_id": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "resource": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 60
+    },
+    "content_hash": {
+      "type": "text",
+      "nullable": false,
+      "maxLength": 64
+    },
+    "row_count": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "created_by": {
+      "type": "integer",
+      "nullable": false,
+      "min": 0
+    },
+    "created_at": {
+      "type": "text",
+      "nullable": false
+    }
+  }
+}

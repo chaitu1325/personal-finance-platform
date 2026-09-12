@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+class ValidationException extends RuntimeException {}
+
 function respond($data, int $status = 200): void
 {
     http_response_code($status);
@@ -34,6 +36,9 @@ function respond_error(string $codeOrMessage, $statusOrMessage = 400, $detailsOr
 
 function handle_api_exception(Throwable $exception): void
 {
+    if ($exception instanceof ValidationException) {
+        respond_error($exception->getMessage(), 422);
+    }
     error_log((string) $exception);
     $environment = app_config()['app_env'] ?? 'development';
     $message = $environment === 'production' ? 'Internal server error' : $exception->getMessage();

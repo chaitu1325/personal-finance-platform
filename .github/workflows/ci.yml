@@ -1,4 +1,4 @@
-name: Phase 1 and full implementation validation
+name: Validate monorepo
 
 on:
   push:
@@ -11,7 +11,9 @@ permissions:
 
 jobs:
   validate:
+    name: Validate monorepo
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     services:
       mysql:
         image: mysql:8.0
@@ -34,6 +36,12 @@ jobs:
         with:
           node-version: 22
 
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_mysql
+
       - name: Install web dependencies
         working-directory: apps/web
         run: npm install
@@ -46,6 +54,21 @@ jobs:
         working-directory: apps/web
         run: npm run build
 
+      - name: Install mobile dependencies
+        working-directory: apps/mobile
+        run: npm install
+
+      - name: Run mobile shared behavior tests
+        working-directory: apps/mobile
+        run: npm test
+
+      - name: Build Android and iOS JavaScript bundles
+        working-directory: apps/mobile
+        env:
+          CI: '1'
+          EXPO_PUBLIC_API_BASE_URL: https://example.test/api/v1
+        run: npm run build
+
       - name: Validate PHP syntax
         run: find backend-php -name '*.php' -print0 | xargs -0 -n1 php -l
 
@@ -53,6 +76,9 @@ jobs:
         env:
           JWT_SECRET: ci-test-secret
         run: php backend-php/tests/jwt_smoke.php
+
+      - name: Run PHP finance and CSV unit tests
+        run: php backend-php/tests/finance_unit.php
 
       - name: Validate JSON metadata
         run: node -e "JSON.parse(require('fs').readFileSync('apps/web/package.json')); JSON.parse(require('fs').readFileSync('apps/mobile/package.json')); JSON.parse(require('fs').readFileSync('apps/mobile/app.json')); console.log('metadata ok')"
@@ -65,6 +91,9 @@ jobs:
           mysql --protocol=TCP -h 127.0.0.1 -P 3306 -u root personal_finance < database/migrations/V002__full_finance_modules.sql
           mysql --protocol=TCP -h 127.0.0.1 -P 3306 -u root personal_finance < database/migrations/V003__account_description.sql
           mysql --protocol=TCP -h 127.0.0.1 -P 3306 -u root personal_finance < database/migrations/V003__account_description.sql
+          mysql --protocol=TCP -h 127.0.0.1 -P 3306 -u root personal_finance < backend-php/tests/upgrade_fixture.sql
+          mysql --protocol=TCP -h 127.0.0.1 -P 3306 -u root personal_finance < database/migrations/V004__types_recurrence_imports.sql
+          mysql --protocol=TCP -h 127.0.0.1 -P 3306 -u root personal_finance < database/migrations/V004__types_recurrence_imports.sql
           test "$(mysql --protocol=TCP -h 127.0.0.1 -P 3306 -u root personal_finance -Nse "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'accounts' AND COLUMN_NAME = 'description' AND IS_NULLABLE = 'YES' AND COLUMN_TYPE = 'varchar(500)';")" = "1"
           mysql --protocol=TCP -h 127.0.0.1 -P 3306 -u root personal_finance -e "SHOW TABLES;"
 
@@ -78,4 +107,29 @@ jobs:
           test "$(mysql --protocol=TCP -h 127.0.0.1 -P 3306 -u root personal_finance_upgrade -Nse "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'accounts' AND COLUMN_NAME = 'description';")" = "1"
 
       - name: Check migrations are present
-        run: test -s database/migrations/V001__foundation.sql && test -s database/migrations/V002__full_finance_modules.sql && test -s database/migrations/V003__account_description.sql
+        run: test -s database/migrations/V001__foundation.sql && test -s database/migrations/V002__full_finance_modules.sql && test -s database/migrations/V003__account_description.sql && test -s database/migrations/V004__types_recurrence_imports.sql && test -s database/freshinstall.sql
+
+      - name: Apply the consolidated fresh-install schema
+        env:
+          MYSQL_PWD: root
+        run: |
+          mysql --protocol=TCP -h 127.0.0.1 -P 3306 -u root -e "CREATE DATABASE personal_finance_fresh;"
+          mysql --protocol=TCP -h 127.0.0.1 -P 3306 -u root personal_finance_fresh < database/freshinstall.sql
+
+      - name: Verify fresh and upgraded schema equivalence
+        env:
+          DB_HOST: 127.0.0.1
+          DB_NAME: personal_finance
+          DB_USER: root
+          DB_PASSWORD: root
+        run: php backend-php/tests/schema_equivalence.php
+
+      - name: Test API, imports, recurrence, reports, and family isolation
+        env:
+          ALLOW_INTEGRATION_TESTS: '1'
+          DB_HOST: 127.0.0.1
+          DB_NAME: personal_finance
+          DB_USER: root
+          DB_PASSWORD: root
+          JWT_SECRET: disposable-ci-finance-test-secret
+        run: node --test backend-php/tests/api.test.mjs

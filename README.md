@@ -7,11 +7,12 @@ A family-focused personal finance workspace for web and mobile. It combines inco
 The full domain implementation is delivered in one reviewable branch/PR after the Phase 1 foundation was merged into main.
 
 - PHP 8.3 REST API with a stable /api/v1 contract
-- React + Vite web application with authentication, dashboard and CRUD starter forms
-- React Native + Expo mobile read-oriented dashboard shell
-- MySQL migrations V001 foundation, V002 full finance modules and V003 account description upgrade
+- React + Vite web and React Native + Expo mobile clients with create/edit forms for all 18 record types
+- Income and expense types, one-time/weekly/monthly/yearly recurrence, custom categories and expense analysis
+- CSV preview, atomic bulk imports and downloadable/shareable sample templates across web and mobile
+- MySQL migrations through V004 and a consolidated `database/freshinstall.sql`
 - JWT authentication, Argon2id password hashing, family-scoped authorization, input allowlists and parameterized SQL
-- GitHub Actions validation for the web build, PHP syntax, JWT behavior and MySQL migrations
+- `Validate monorepo` checks client tests/builds, PHP syntax/unit tests, API integration, migrations and fresh/upgrade schema equivalence
 
 This is an application-ready development increment. Production hosting, secrets, payment/bank integrations, store submissions and destructive migrations still require an explicit release decision.
 
@@ -23,11 +24,12 @@ This is an application-ready development increment. Production hosting, secrets,
 - apps/mobile: Expo mobile client
 - packages/api-client: small shared fetch client
 - packages/api-types: shared module and enum metadata
+- packages/finance-core: web/mobile form behavior, reference selection, validation and API client
 - docs: implementation and release notes
 
 ## Local setup
 
-1. Create a MySQL database and apply the files in `database/migrations` in version order: V001, V002 and V003.
+1. Create an empty MySQL database and import **only** `database/freshinstall.sql`. Existing installations apply only their pending migrations in version order (latest: V004); do not use the fresh-install file to upgrade.
 2. Copy backend-php/config/config.example.php to backend-php/config/config.php, or set environment variables.
 3. Set DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD and a long random JWT_SECRET.
 4. Start the API from the repository root. The router makes clean /api/v1 URLs work with PHP's development server:
@@ -45,6 +47,14 @@ npm run dev
 ~~~
 
 Set VITE_API_BASE_URL when the API is not at http://localhost:8080/api/v1. For Expo, set EXPO_PUBLIC_API_BASE_URL.
+
+Start mobile with `cd apps/mobile`, `npm install`, then `npm start`. A physical
+device needs the development computer's reachable LAN address or an HTTPS API,
+not the device's own `localhost`. Rebuild native apps after installing the new
+document picker, file system and sharing dependencies.
+
+See [types, recurrence, CSV templates and deployment](docs/types-recurrence-imports.md)
+for usage, examples, API details and acceptance checks.
 
 ## API conventions
 
@@ -66,6 +76,7 @@ Set VITE_API_BASE_URL when the API is not at http://localhost:8080/api/v1. For E
 - /assets, /asset-valuations
 - /liabilities, /loan-schedules, /loan-payments
 - /dashboard, /reports?type=cashflow|spending|net-worth, /notifications
+- /catalog, /imports, /recurring-run
 
 ## Delivery and branch policy
 
@@ -73,8 +84,7 @@ Work is developed from main on a feature branch and submitted as a pull request.
 
 ## Follow-up hardening
 
-- Add integration tests with a disposable MySQL service and API contract tests
 - Add refresh-token rotation, rate limiting, email verification and account recovery
-- Add background jobs for recurring entries, rent reminders and loan schedules
+- Add rent reminders and loan schedule jobs (recurring entry processing is available now)
 - Add audit event writes, object storage for documents and observability
 - Introduce the Java Spring Boot adapter behind the same API contract when the PHP implementation is ready to be replaced

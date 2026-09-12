@@ -34,10 +34,9 @@ excluded from deployment.
    use `/<domain>/htdocs/`.
 2. Create a MySQL database in the InfinityFree control panel and record the
    database hostname, name, username and password.
-3. Open phpMyAdmin for that database and import these files in order:
-   - `database/migrations/V001__foundation.sql`
-   - `database/migrations/V002__full_finance_modules.sql`
-   - `database/migrations/V003__account_description.sql`
+3. Open phpMyAdmin for the **empty** database and import only
+   `database/freshinstall.sql`. It includes the complete schema through V004;
+   do not run historical migrations for a fresh installation.
 4. After the first deployment, use the InfinityFree File Manager or an FTPS
    client to copy `htdocs/config/config.example.php` to
    `htdocs/config/config.php`.
@@ -92,6 +91,23 @@ Before deploying the Accounts screen to a database that already has V001 and
 V002, import only `database/migrations/V003__account_description.sql` through
 phpMyAdmin. It adds the nullable account description column without changing
 existing account data and is safe to import again if its status is uncertain.
+
+For income/expense types, recurrence and CSV imports, apply
+`database/migrations/V004__types_recurrence_imports.sql` after V003 and before
+deploying the new application. Back up the database first. V004 preserves
+existing data and can be rerun after an interrupted migration. The FTP workflow
+does not run SQL, so a successful upload alone does not complete the upgrade.
+
+No extra upload directory, public file permission or secret is required for CSV
+imports. Files are read as text and sent to the authenticated API, limited to
+1 MB / 200 rows. The workflow already copies the new API and library files.
+For this test host, use **Process due entries** in the app. The optional CLI
+recurrence job requires a host with scheduled PHP execution and is not included
+in the public FTP release. Native mobile API access requires compatible hosting;
+see the existing hosting limitations above.
+
+See the [feature and release guide](../../docs/types-recurrence-imports.md)
+for sample CSVs and web/mobile verification.
 
 ## References
 

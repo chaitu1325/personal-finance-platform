@@ -3,7 +3,10 @@ declare(strict_types=1);
 
 function request_json(): array
 {
-    $raw = file_get_contents('php://input') ?: '';
+    $raw = file_get_contents('php://input', false, null, 0, 2200001) ?: '';
+    if (strlen($raw) > 2200000) {
+        respond_error('Request is too large (maximum 2.2 MB)', 413);
+    }
     if ($raw === '') {
         return [];
     }
