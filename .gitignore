@@ -7,6 +7,13 @@ backend-php/storage/
 node_modules/
 dist/
 .expo/
+apps/mobile/android/
+apps/mobile/ios/
+apps/mobile/native-build/
+*.jks
+*.keystore
+*.p12
+*.mobileprovision
 apps/web/.env.local
 apps/mobile/.env
 .env

@@ -177,6 +177,10 @@ to at least 3 MB. JSON uploads do not depend on `upload_max_filesize`.
 Rebuild and distribute Android/iOS clients with the new native picker/sharing
 dependencies and the correct `EXPO_PUBLIC_API_BASE_URL`. A successful Expo export
 checks both JS bundles; it is not a signed APK/IPA or a physical-device test.
+The [native build workflow](mobile-native-builds.md) also compiles Android APK/AAB
+and an iOS Simulator app using Gradle/Xcode and uploads the packages to GitHub
+Actions artifacts. It supports optional Android release signing; iPhone device
+distribution still requires Apple signing credentials.
 InfinityFree's current test deployment has separate native-client and cron
 constraints documented in [its deployment guide](../deployment/infinityfree/README.md).
 Use manual processing there and an API host that permits native clients for

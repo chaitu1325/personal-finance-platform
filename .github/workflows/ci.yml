@@ -133,3 +133,15 @@ jobs:
           DB_PASSWORD: root
           JWT_SECRET: disposable-ci-finance-test-secret
         run: node --test backend-php/tests/api.test.mjs
+
+  native-mobile:
+    name: Native mobile builds
+    needs: validate
+    # Validate real packages once per PR and on main, avoiding duplicate native builds on feature pushes.
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/mobile-native.yml
+    with:
+      api_base_url: ${{ vars.EXPO_PUBLIC_API_BASE_URL || 'https://example.invalid/api/v1' }}
+      smoke_build: ${{ vars.EXPO_PUBLIC_API_BASE_URL == '' }}
+      platform: all
+      android_signing: test

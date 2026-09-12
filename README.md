@@ -53,6 +53,11 @@ device needs the development computer's reachable LAN address or an HTTPS API,
 not the device's own `localhost`. Rebuild native apps after installing the new
 document picker, file system and sharing dependencies.
 
+Native APK/AAB and iOS Simulator builds are available through **Actions → Build
+mobile (native tools)** and in PR validation. They run Gradle/Xcode directly,
+without EAS or another hosted mobile build service. See
+[native build setup and downloads](docs/mobile-native-builds.md).
+
 See [types, recurrence, CSV templates and deployment](docs/types-recurrence-imports.md)
 for usage, examples, API details and acceptance checks.
 

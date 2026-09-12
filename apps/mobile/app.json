@@ -5,6 +5,15 @@
     "version": "0.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
+    "android": {
+      "package": "com.chaitu1325.personalfinance",
+      "versionCode": 1
+    },
+    "ios": {
+      "bundleIdentifier": "com.chaitu1325.personalfinance",
+      "buildNumber": "1",
+      "supportsTablet": true
+    },
     "splash": {
       "resizeMode": "contain",
       "backgroundColor": "#17365D"
