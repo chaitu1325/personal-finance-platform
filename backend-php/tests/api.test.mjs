@@ -3,6 +3,7 @@ import { after, before, test } from 'node:test';
 import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { changeField, formPayload, initialForm } from '../../packages/finance-core/index.js';
 
 // This suite writes only to the disposable database prepared by CI.
 if (process.env.ALLOW_INTEGRATION_TESTS !== '1' || process.env.DB_NAME !== 'personal_finance'
@@ -151,6 +152,14 @@ test('catch-up is bounded to 200 entries and resumes without duplicate dates', a
   assert.equal((await processDue()).created, 200);
   assert.equal((await call('/recurring-transactions?id=' + schedule.id)).next_run_date, '2021-02-04');
   await patch('recurring-transactions', schedule.id, { is_active: 0 });
+});
+
+test('web/mobile schedule payload can replace an expired recurring end date with a future one-time entry', async () => {
+  const schedule = await create('recurring-transactions', { ...transaction(), frequency: 'MONTHLY', next_run_date: '2024-01-01', end_date: '2024-02-01', is_active: 0 });
+  const module = (await call('/catalog')).modules.find(m => m.key === 'recurring-transactions');
+  const form = changeField(initialForm(module, schedule), 'frequency', 'ONETIME', module);
+  const saved = await patch('recurring-transactions', schedule.id, formPayload(module, { ...form, next_run_date: '2099-01-01', is_active: '1' }, true));
+  assert.equal(saved.end_date, null); assert.equal(saved.frequency, 'ONETIME'); assert.equal(saved.next_run_date, '2099-01-01');
 });
 
 test('expense analysis separates categories, payment types, currencies and families', async () => {

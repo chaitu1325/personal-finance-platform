@@ -62,7 +62,10 @@ export function formPayload(module, form, editing = false) {
     // Keep decimal values and BIGINT IDs as strings to avoid precision loss.
     result[field.name] = value;
   }
-  if (result.frequency === 'ONETIME') delete result.end_date;
+  if (result.frequency === 'ONETIME') {
+    if (editing && module.key === 'recurring-transactions') result.end_date = null;
+    else delete result.end_date;
+  }
   return result;
 }
 

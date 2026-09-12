@@ -21,6 +21,12 @@ test('direction changes clear incompatible category and classification', () => {
   assert.equal(changeField(changed, 'transaction_type', 'TRANSFER', module).frequency, 'ONETIME');
 });
 test('one-time selection removes old end date', () => assert.equal(changeField({ end_date: '2026-09-12' }, 'frequency', 'ONETIME', module).end_date, ''));
+test('changing an existing schedule to one-time explicitly clears its stored end date', () => {
+  const scheduleModule = { key: 'recurring-transactions', fields: module.fields.map(f => ({ ...f, create_only: false })) };
+  const form = changeField({ account_id: '1', amount: '10', transaction_type: 'INCOME', frequency: 'MONTHLY', end_date: '2024-02-01' }, 'frequency', 'ONETIME', scheduleModule);
+  const payload = formPayload(scheduleModule, form, true);
+  assert.equal(payload.frequency, 'ONETIME'); assert.equal(payload.end_date, null);
+});
 test('payload retains exact large money values and ID strings', () => {
   const payload = formPayload(module, { account_id: '9007199254740993', amount: '123456789012345.1234', transaction_type: 'INCOME', frequency: 'ONETIME', end_date: '2026-09-12' });
   assert.equal(payload.amount, '123456789012345.1234'); assert.equal(payload.account_id, '9007199254740993'); assert.ok(!('end_date' in payload));
