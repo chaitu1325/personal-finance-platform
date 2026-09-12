@@ -37,6 +37,7 @@ excluded from deployment.
 3. Open phpMyAdmin for that database and import these files in order:
    - `database/migrations/V001__foundation.sql`
    - `database/migrations/V002__full_finance_modules.sql`
+   - `database/migrations/V003__account_description.sql`
 4. After the first deployment, use the InfinityFree File Manager or an FTPS
    client to copy `htdocs/config/config.example.php` to
    `htdocs/config/config.php`.
@@ -84,6 +85,13 @@ reviewers in GitHub if deployment approval is required.
 GitHub Actions does not execute production database migrations or an HTTP
 health check against InfinityFree. Apply future migrations through phpMyAdmin
 in version order until a secured browser-driven migration feature is added.
+
+## Upgrade an existing deployment
+
+Before deploying the Accounts screen to a database that already has V001 and
+V002, import only `database/migrations/V003__account_description.sql` through
+phpMyAdmin. It adds the nullable account description column without changing
+existing account data and is safe to import again if its status is uncertain.
 
 ## References
 

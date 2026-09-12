@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS accounts (
     name VARCHAR(120) NOT NULL,
     account_type VARCHAR(40) NOT NULL,
     institution VARCHAR(150) NULL,
+    description VARCHAR(500) NULL,
     opening_balance DECIMAL(19,4) NOT NULL DEFAULT 0,
     currency CHAR(3) NOT NULL DEFAULT 'INR',
     status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE',

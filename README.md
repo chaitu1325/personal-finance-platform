@@ -9,7 +9,7 @@ The full domain implementation is delivered in one reviewable branch/PR after th
 - PHP 8.3 REST API with a stable /api/v1 contract
 - React + Vite web application with authentication, dashboard and CRUD starter forms
 - React Native + Expo mobile read-oriented dashboard shell
-- MySQL migrations V001 foundation and V002 full finance modules
+- MySQL migrations V001 foundation, V002 full finance modules and V003 account description upgrade
 - JWT authentication, Argon2id password hashing, family-scoped authorization, input allowlists and parameterized SQL
 - GitHub Actions validation for the web build, PHP syntax, JWT behavior and MySQL migrations
 
@@ -27,7 +27,7 @@ This is an application-ready development increment. Production hosting, secrets,
 
 ## Local setup
 
-1. Create a MySQL database and apply V001__foundation.sql followed by V002__full_finance_modules.sql.
+1. Create a MySQL database and apply the files in `database/migrations` in version order: V001, V002 and V003.
 2. Copy backend-php/config/config.example.php to backend-php/config/config.php, or set environment variables.
 3. Set DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD and a long random JWT_SECRET.
 4. Start the API from the repository root. The router makes clean /api/v1 URLs work with PHP's development server:

@@ -38,6 +38,10 @@ jobs:
         working-directory: apps/web
         run: npm install
 
+      - name: Run web tests
+        working-directory: apps/web
+        run: npm test
+
       - name: Build web app
         working-directory: apps/web
         run: npm run build
@@ -59,7 +63,19 @@ jobs:
         run: |
           mysql --protocol=TCP -h 127.0.0.1 -P 3306 -u root personal_finance < database/migrations/V001__foundation.sql
           mysql --protocol=TCP -h 127.0.0.1 -P 3306 -u root personal_finance < database/migrations/V002__full_finance_modules.sql
+          mysql --protocol=TCP -h 127.0.0.1 -P 3306 -u root personal_finance < database/migrations/V003__account_description.sql
+          mysql --protocol=TCP -h 127.0.0.1 -P 3306 -u root personal_finance < database/migrations/V003__account_description.sql
+          test "$(mysql --protocol=TCP -h 127.0.0.1 -P 3306 -u root personal_finance -Nse "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'accounts' AND COLUMN_NAME = 'description' AND IS_NULLABLE = 'YES' AND COLUMN_TYPE = 'varchar(500)';")" = "1"
           mysql --protocol=TCP -h 127.0.0.1 -P 3306 -u root personal_finance -e "SHOW TABLES;"
 
+      - name: Validate existing-database account upgrade
+        env:
+          MYSQL_PWD: root
+        run: |
+          mysql --protocol=TCP -h 127.0.0.1 -P 3306 -u root -e "CREATE DATABASE personal_finance_upgrade; CREATE TABLE personal_finance_upgrade.accounts (id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, institution VARCHAR(150) NULL, PRIMARY KEY (id));"
+          mysql --protocol=TCP -h 127.0.0.1 -P 3306 -u root personal_finance_upgrade < database/migrations/V003__account_description.sql
+          mysql --protocol=TCP -h 127.0.0.1 -P 3306 -u root personal_finance_upgrade < database/migrations/V003__account_description.sql
+          test "$(mysql --protocol=TCP -h 127.0.0.1 -P 3306 -u root personal_finance_upgrade -Nse "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'accounts' AND COLUMN_NAME = 'description';")" = "1"
+
       - name: Check migrations are present
-        run: test -s database/migrations/V001__foundation.sql && test -s database/migrations/V002__full_finance_modules.sql
+        run: test -s database/migrations/V001__foundation.sql && test -s database/migrations/V002__full_finance_modules.sql && test -s database/migrations/V003__account_description.sql

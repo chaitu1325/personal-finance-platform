@@ -1,6 +1,7 @@
 const TRANSACTION_TYPES = ['INCOME', 'EXPENSE', 'TRANSFER', 'ADJUSTMENT'];
 const MODULES = [
   { key: 'dashboard', label: 'Dashboard', endpoint: '/dashboard' },
+  { key: 'accounts', label: 'Accounts', endpoint: '/accounts' },
   { key: 'transactions', label: 'Income & expenses', endpoint: '/transactions' },
   { key: 'persons', label: 'Family members', endpoint: '/persons' },
   { key: 'properties', label: 'Rental properties', endpoint: '/properties' },
