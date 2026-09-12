@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "test": "node --test src/*.test.js",
     "build": "vite build && npm run verify:build",
     "verify:build": "node scripts/verify-build.mjs",
     "preview": "vite preview"
