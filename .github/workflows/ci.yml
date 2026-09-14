@@ -143,5 +143,7 @@ jobs:
     with:
       api_base_url: ${{ vars.EXPO_PUBLIC_API_BASE_URL || 'https://example.invalid/api/v1' }}
       smoke_build: ${{ vars.EXPO_PUBLIC_API_BASE_URL == '' }}
-      platform: all
+      build_android: true
+      build_ios: true
+      upload_to_drive: false
       android_signing: test

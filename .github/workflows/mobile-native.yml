@@ -7,11 +7,18 @@ on:
         description: 'Reachable HTTPS backend URL, ending in /api/v1 (included in the app)'
         required: true
         type: string
-      platform:
-        description: Platforms to build
-        type: choice
-        options: [all, android, ios]
-        default: all
+      build_android:
+        description: Build Android APK and AAB
+        type: boolean
+        default: true
+      build_ios:
+        description: Build iOS Simulator app
+        type: boolean
+        default: true
+      upload_to_drive:
+        description: Upload Android APK/AAB to Google Drive (manual main builds only)
+        type: boolean
+        default: true
       android_signing:
         description: 'Test key for installation/testing, or your release keystore (main only)'
         type: choice
@@ -26,9 +33,15 @@ on:
       api_base_url:
         required: true
         type: string
-      platform:
-        type: string
-        default: all
+      build_android:
+        type: boolean
+        default: true
+      build_ios:
+        type: boolean
+        default: true
+      upload_to_drive:
+        type: boolean
+        default: false
       smoke_build:
         type: boolean
         default: false
@@ -43,9 +56,28 @@ permissions:
   contents: read
 
 jobs:
+  settings:
+    name: Validate platform selection
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check selected platforms and upload mode
+        env:
+          PF_BUILD_ANDROID: ${{ inputs.build_android }}
+          PF_BUILD_IOS: ${{ inputs.build_ios }}
+          PF_UPLOAD_TO_DRIVE: ${{ inputs.upload_to_drive }}
+          BUILD_EVENT: ${{ github.event_name }}
+          BUILD_REF: ${{ github.ref }}
+        run: node apps/mobile/scripts/check-workflow.cjs
+
   android:
     name: Android APK and AAB
-    if: inputs.platform == 'all' || inputs.platform == 'android'
+    needs: settings
+    if: inputs.build_android
     runs-on: ubuntu-latest
     timeout-minutes: 60
     defaults:
@@ -124,9 +156,34 @@ jobs:
         run: |
           node -e "require('node:fs').rmSync(require('node:path').join(process.env.RUNNER_TEMP, 'personal-finance-release.jks'), { force: true })"
 
+  drive-upload:
+    name: Upload Android packages to Google Drive
+    needs: android
+    if: inputs.build_android && inputs.upload_to_drive && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Download this run's verified Android packages
+        uses: actions/download-artifact@v4
+        with:
+          name: personal-finance-android-${{ inputs.android_signing }}-${{ github.run_number }}
+          path: apps/mobile/native-build/android/
+      - name: Upload APK and AAB with the Google Drive API
+        env:
+          GOOGLE_DRIVE_FOLDER_ID: ${{ vars.GOOGLE_DRIVE_FOLDER_ID || '1pYKQJpriFnh1IQc2t9eMvslbQhD_1pVX' }}
+          GOOGLE_DRIVE_CLIENT_ID: ${{ secrets.GOOGLE_DRIVE_CLIENT_ID }}
+          GOOGLE_DRIVE_CLIENT_SECRET: ${{ secrets.GOOGLE_DRIVE_CLIENT_SECRET }}
+          GOOGLE_DRIVE_REFRESH_TOKEN: ${{ secrets.GOOGLE_DRIVE_REFRESH_TOKEN }}
+        run: node apps/mobile/scripts/upload-drive.cjs apps/mobile/native-build/android
+
   ios:
     name: iOS Simulator app
-    if: inputs.platform == 'all' || inputs.platform == 'ios'
+    needs: settings
+    if: inputs.build_ios
     runs-on: macos-15
     timeout-minutes: 60
     defaults:
