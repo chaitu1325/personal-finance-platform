@@ -1,0 +1,223 @@
+name: Build mobile (native tools)
+
+on:
+  workflow_dispatch:
+    inputs:
+      api_base_url:
+        description: 'Reachable HTTPS backend URL, ending in /api/v1 (included in the app)'
+        required: true
+        type: string
+      build_android:
+        description: Build Android APK and AAB
+        type: boolean
+        default: true
+      build_ios:
+        description: Build iOS Simulator app
+        type: boolean
+        default: true
+      upload_to_drive:
+        description: Upload Android APK/AAB to Google Drive (manual main builds only)
+        type: boolean
+        default: true
+      android_signing:
+        description: 'Test key for installation/testing, or your release keystore (main only)'
+        type: choice
+        options: [test, release]
+        default: test
+      build_number:
+        description: 'Increasing positive build number; empty uses the workflow run number'
+        type: string
+        required: false
+  workflow_call:
+    inputs:
+      api_base_url:
+        required: true
+        type: string
+      build_android:
+        type: boolean
+        default: true
+      build_ios:
+        type: boolean
+        default: true
+      upload_to_drive:
+        type: boolean
+        default: false
+      smoke_build:
+        type: boolean
+        default: false
+      android_signing:
+        type: string
+        default: test
+      build_number:
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  settings:
+    name: Validate platform selection
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check selected platforms and upload mode
+        env:
+          PF_BUILD_ANDROID: ${{ inputs.build_android }}
+          PF_BUILD_IOS: ${{ inputs.build_ios }}
+          PF_UPLOAD_TO_DRIVE: ${{ inputs.upload_to_drive }}
+          BUILD_EVENT: ${{ github.event_name }}
+          BUILD_REF: ${{ github.ref }}
+        run: node apps/mobile/scripts/check-workflow.cjs
+
+  android:
+    name: Android APK and AAB
+    needs: settings
+    if: inputs.build_android
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
+        working-directory: apps/mobile
+    env:
+      CI: '1'
+      EXPO_NO_TELEMETRY: '1'
+      PF_NATIVE_BUILD: '1'
+      PF_CI_SMOKE_BUILD: ${{ inputs.smoke_build && '1' || '0' }}
+      EXPO_PUBLIC_API_BASE_URL: ${{ inputs.api_base_url }}
+      PF_BUILD_NUMBER: ${{ inputs.build_number || github.run_number }}
+      PF_ANDROID_SIGNING: ${{ inputs.android_signing }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate native build settings
+        env:
+          BUILD_EVENT: ${{ github.event_name }}
+          BUILD_REF: ${{ github.ref }}
+        run: |
+          node scripts/check-native.cjs
+          if [ "$PF_ANDROID_SIGNING" = release ] && { [ "$BUILD_EVENT" != workflow_dispatch ] || [ "$BUILD_REF" != refs/heads/main ]; }; then
+            echo 'Release signing is available only for a manual build from reviewed main.'
+            exit 1
+          fi
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install dependencies
+        run: npm install
+      - name: Run mobile tests and script checks
+        run: |
+          npm test
+          bash -n scripts/build-android.sh scripts/build-ios.sh
+      - name: Prepare Android SDK
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0" "ndk;27.1.12297006" "cmake;3.22.1"
+      - name: Load your release keystore
+        if: inputs.android_signing == 'release' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const path = require('node:path');
+          for (const name of ['ANDROID_KEYSTORE_BASE64', 'ANDROID_KEYSTORE_PASSWORD', 'ANDROID_KEY_ALIAS', 'ANDROID_KEY_PASSWORD']) {
+            if (!process.env[name]) throw new Error('Missing release signing secret: ' + name);
+          }
+          const file = path.join(process.env.RUNNER_TEMP, 'personal-finance-release.jks');
+          fs.writeFileSync(file, Buffer.from(process.env.ANDROID_KEYSTORE_BASE64, 'base64'), { mode: 0o600 });
+          fs.appendFileSync(process.env.GITHUB_ENV, 'PF_ANDROID_KEYSTORE_FILE=' + file + '\n');
+          NODE
+      - name: Build standalone APK and AAB
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ inputs.android_signing == 'release' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && secrets.ANDROID_KEYSTORE_PASSWORD || '' }}
+          ANDROID_KEY_ALIAS: ${{ inputs.android_signing == 'release' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && secrets.ANDROID_KEY_ALIAS || '' }}
+          ANDROID_KEY_PASSWORD: ${{ inputs.android_signing == 'release' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && secrets.ANDROID_KEY_PASSWORD || '' }}
+        run: npm run build:android
+      - name: Upload Android packages and checksums
+        uses: actions/upload-artifact@v4
+        with:
+          name: personal-finance-android-${{ inputs.android_signing }}-${{ github.run_number }}
+          path: apps/mobile/native-build/android/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Remove temporary release keystore
+        if: always()
+        run: |
+          node -e "require('node:fs').rmSync(require('node:path').join(process.env.RUNNER_TEMP, 'personal-finance-release.jks'), { force: true })"
+
+  drive-upload:
+    name: Upload Android packages to Google Drive
+    needs: android
+    if: inputs.build_android && inputs.upload_to_drive && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Download this run's verified Android packages
+        uses: actions/download-artifact@v4
+        with:
+          name: personal-finance-android-${{ inputs.android_signing }}-${{ github.run_number }}
+          path: apps/mobile/native-build/android/
+      - name: Upload APK and AAB with the Google Drive API
+        env:
+          GOOGLE_DRIVE_FOLDER_ID: ${{ vars.GOOGLE_DRIVE_FOLDER_ID || '1pYKQJpriFnh1IQc2t9eMvslbQhD_1pVX' }}
+          GOOGLE_DRIVE_CLIENT_ID: ${{ secrets.GOOGLE_DRIVE_CLIENT_ID }}
+          GOOGLE_DRIVE_CLIENT_SECRET: ${{ secrets.GOOGLE_DRIVE_CLIENT_SECRET }}
+          GOOGLE_DRIVE_REFRESH_TOKEN: ${{ secrets.GOOGLE_DRIVE_REFRESH_TOKEN }}
+        run: node apps/mobile/scripts/upload-drive.cjs apps/mobile/native-build/android
+
+  ios:
+    name: iOS Simulator app
+    needs: settings
+    if: inputs.build_ios
+    runs-on: macos-15
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
+        working-directory: apps/mobile
+    env:
+      CI: '1'
+      EXPO_NO_TELEMETRY: '1'
+      PF_NATIVE_BUILD: '1'
+      PF_CI_SMOKE_BUILD: ${{ inputs.smoke_build && '1' || '0' }}
+      EXPO_PUBLIC_API_BASE_URL: ${{ inputs.api_base_url }}
+      PF_BUILD_NUMBER: ${{ inputs.build_number || github.run_number }}
+      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate native build settings and Xcode
+        run: |
+          node scripts/check-native.cjs
+          xcodebuild -version
+          pod --version
+      - name: Install dependencies
+        run: npm install
+      - name: Run mobile tests
+        run: npm test
+      - name: Build standalone iOS Simulator app
+        run: npm run build:ios
+      - name: Upload Simulator app and checksums
+        uses: actions/upload-artifact@v4
+        with:
+          name: personal-finance-ios-simulator-${{ github.run_number }}
+          path: apps/mobile/native-build/ios-simulator/
+          if-no-files-found: error
+          retention-days: 14

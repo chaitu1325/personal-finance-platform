@@ -5,7 +5,8 @@ require_once __DIR__ . '/_bootstrap.php';
 
 function pf_report_date(string $value, string $fallback): string
 {
-    return preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) === 1 ? $value : $fallback;
+    if ($value === '') return $fallback;
+    return pf_validate_field('date', $value, ['columns' => ['date' => ['type' => 'date', 'nullable' => false]]]);
 }
 
 api_run(function (): void {
@@ -14,6 +15,7 @@ api_run(function (): void {
     $familyId = (int) $user['family_id'];
     $from = pf_report_date((string) ($_GET['from'] ?? ''), date('Y-01-01'));
     $to = pf_report_date((string) ($_GET['to'] ?? ''), date('Y-m-d'));
+    if ($to < $from) throw new ValidationException('to must not be before from');
     $type = strtolower((string) ($_GET['type'] ?? 'cashflow'));
     $pdo = db();
 
@@ -32,17 +34,21 @@ api_run(function (): void {
     }
 
     if ($type === 'spending') {
+        $group = ($_GET['group'] ?? 'category') === 'entry_type' ? 'entry_type' : 'category';
+        $label = $group === 'entry_type' ? 't.entry_type' : "COALESCE(c.name, 'Uncategorised')";
+        $groupColumns = $group === 'entry_type' ? 't.entry_type' : 'c.id, c.name';
         $statement = $pdo->prepare(
-            'SELECT COALESCE(c.name, \'Uncategorised\') AS category,
+            'SELECT ' . $label . ' AS category, a.currency,
                     COALESCE(SUM(t.amount), 0) AS amount, COUNT(*) AS transaction_count
              FROM transactions t
-             LEFT JOIN categories c ON c.id = t.category_id
+             INNER JOIN accounts a ON a.id = t.account_id AND a.family_id = t.family_id
+             LEFT JOIN categories c ON c.id = t.category_id AND (c.family_id = t.family_id OR c.family_id IS NULL)
              WHERE t.family_id = ? AND t.transaction_type = \'EXPENSE\'
                    AND t.transaction_date BETWEEN ? AND ?
-             GROUP BY c.name ORDER BY amount DESC'
+             GROUP BY ' . $groupColumns . ', a.currency ORDER BY amount DESC'
         );
         $statement->execute([$familyId, $from, $to]);
-        respond(['type' => $type, 'period' => ['from' => $from, 'to' => $to], 'items' => $statement->fetchAll()]);
+        respond(['type' => $type, 'group' => $group, 'period' => ['from' => $from, 'to' => $to], 'items' => $statement->fetchAll()]);
     }
 
     if ($type === 'net-worth') {

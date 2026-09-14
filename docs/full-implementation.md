@@ -1,5 +1,9 @@
 # Full implementation handoff
 
+For the current web/mobile types, recurrence, categories, imports, and V004
+release, see [the feature guide](types-recurrence-imports.md). The notes below
+also describe the earlier foundation and V002/V003 delivery.
+
 ## Scope
 
 This increment combines the approved product areas in one branch: authentication, family people, cash accounts, income and expenses, recurring transactions, budgets, goals, rental management, investments, assets, liabilities, reporting and notifications.

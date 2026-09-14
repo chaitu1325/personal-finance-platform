@@ -6,11 +6,18 @@
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
-    "ios": "expo start --ios"
+    "ios": "expo start --ios",
+    "test": "node --test ../../packages/finance-core/*.test.js scripts/*.test.cjs",
+    "build": "expo export --platform all --max-workers 2",
+    "build:android": "bash scripts/build-android.sh",
+    "build:ios": "bash scripts/build-ios.sh"
   },
   "dependencies": {
     "expo": "~53.0.0",
     "expo-status-bar": "~2.2.3",
+    "expo-document-picker": "~13.1.6",
+    "expo-file-system": "~18.1.11",
+    "expo-sharing": "~13.1.5",
     "react": "19.0.0",
     "react-native": "0.79.5"
   }

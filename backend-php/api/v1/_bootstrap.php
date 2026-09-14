@@ -7,6 +7,8 @@ require_once dirname(__DIR__, 2) . '/lib/request.php';
 require_once dirname(__DIR__, 2) . '/lib/jwt.php';
 require_once dirname(__DIR__, 2) . '/lib/auth.php';
 require_once dirname(__DIR__, 2) . '/lib/resource.php';
+require_once dirname(__DIR__, 2) . '/lib/resource-specs.php';
+require_once dirname(__DIR__, 2) . '/lib/finance.php';
 
 configure_http();
 
